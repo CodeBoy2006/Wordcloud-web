@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="">
+<head>
+    <meta charset="UTF-8">
+    <title>AIWordCloud 1.2</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--网页标题左侧显示-->
+    <link rel="icon" href="icon/favicon.ico" type="image/x-icon">
+    <!--收藏夹显示图标-->
+    <link rel="shortcut icon" href="icon/favicon.ico" type="image/x-icon">
+    <!-- 引入 Bootstrap -->
+    <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="bootstrap/bootstrap-select-1.13.9/css/bootstrap-select.min.css" rel="stylesheet" />
+    <script src="bootstrap/js/jquery-3.4.1.min.js" rel="script"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+    <script src="bootstrap/bootstrap-select-1.13.9/js/bootstrap-select.min.js"></script>
+    <script src="bootstrap/bootstrap-select-1.13.9/js/i18n/defaults-zh_CN.min.js"></script>
+    <style>
+        html {
+            position: relative;
+            min-height: 100%;
+        }
+
+        body {
+          /* Margin bottom by footer height */
+            margin-bottom: 60px;
+            font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 50px;
+            box-sizing: border-box;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            /* Set the fixed height of the footer here */
+            min-height: 50px;
+
+            background-color: #f5f5f5;
+        }
+
+        .form-control.area{
+            min-width: 100%;
+            min-height: 250px;
+            max-width: 100%;
+            max-height: 750px;
+        }
+
+        .box{
+            width: 75%;
+            min-width: 75%;
+            max-width: 1600px;
+            margin: auto;
+        }
+
+        .content{
+            min-height: calc(100vh - 50px);
+        }
+        .text-center img{
+            border:3px solid #0088cc;
+            border-radius: 15px;
+        }
+
+        #home_btn_group{
+            position: relative;
+            top:25px;
+            left:25px;
+        }
+        #home_btn{
+
+
+            -moz-border-radius: 50%;
+            -webkit-border-radius: 50%;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+        }
+
+        label{
+            font-size: 15px;
+            vertical-align: center;
+        }
+    </style>
+    <script rel="script">
+        String.prototype.format= function(){
+            //将arguments转化为数组（ES5中并非严格的数组）
+            var args = Array.prototype.slice.call(arguments);
+            var count=0;
+            //通过正则替换%s
+            return this.replace(/%s/g,function(s,i){
+                return args[count++];
+            });
+        };
+
+        var salert = "<div class=\"alert alert-success alert-dismissable\">\n" +
+            "            <button type=\"button\" class=\"close\" data-dismiss=\"alert\"\n" +
+            "                    aria-hidden=\"true\">\n" +
+            "                &times;\n" +
+            "            </button>\n" +
+            "            %s\n" +
+            "        </div>";
+        function getwc()
+        {
+            var submit_btn = $("#submit_btn");
+            submit_btn.attr("disabled","disabled");
+            submit_btn.text("正在生成中……");
+            var text = $("#text_input").val();
+            var split_mode = $("#split_mode_select").val();
+            var wordscount = $("words_max_value").val();
+            $.ajax(
+            {
+                url:"../app/wc_api",
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                data:JSON.stringify({"text":text,"split_mode":split_mode,"wordscount":wordscount}),
+                dataType: "json",
+                success:function (message) {
+                    // alert("提交成功"+JSON.stringify(message));
+                    $('.tips').html(salert.format("生成成功,分词结果（按频率排序）: &nbsp&nbsp"+message['data'])).fadeIn(0.25);
+                    submit_btn.removeAttr("disabled");
+                    submit_btn.text("生成词云图");
+                    console.log(message['path']);
+                    $(".text-center").children('img').attr("src",'../'+message['path'])
+                },
+                error:function (message) {
+                    // alert("提交失败"+JSON.stringify(message));
+                    submit_btn.removeAttr("disabled");
+                    submit_btn.text("生成词云图");
+                }
+            }
+            )
+        }
+
+    </script>
+</head>
+<body>
+    <div class="content">
+        <div id="home_btn_group" class="btn-group">
+            <button id="home_btn" type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+                菜单
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" role="menu">
+                <li>
+                    <a href="#">主页</a>
+                </li>
+                <li>
+                    <a href="#">另一个功能</a>
+                </li>
+                <li>
+                    <a href="#">其他</a>
+                </li>
+                <li class="divider"></li>
+                <li>
+                    <a href="#">分离的链接</a>
+                </li>
+            </ul>
+        </div>
+        <h1  class="page-header" style="text-align: center;line-height: 70px;font-size: 55px">AI 词云图生成器<br/><span class="label label-info">文本生成版</span><small style="font-size: 15px">&nbsp&nbsp&nbsp&nbspBy Codeboy</small></h1>
+        <div class="tips"></div>
+        <div class="box">
+
+            <textarea class="form-control area" id="text_input" placeholder="请在此粘贴文本或输入文字,长文本生成稍慢，请稍等~" rows="15"></textarea>
+            <div style="margin: 15px; text-align: center;">
+                <button type="button" id="submit_btn" class="btn btn-primary btn-lg" style="font-size: large;width: 250px;line-height: 40px;" onclick="getwc()">
+                    生成词云图
+                </button>
+            </div>
+
+
+            <div class="text-center">
+                <img src="img/default.png" class="rounded">
+            </div>
+            <div class="accordion" id="accordionExample">
+                <div class="card">
+                    <div class="card-header" id="headingOne">
+                        <h2 class="mb-0">
+                            <center>
+                                <button class="btn btn-link" style="margin: 15px;border:2px solid grey;width: 125px;font-size:17px;line-height: 25px;border-radius: 5px;text-align: center" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    高级设置
+                                </button>
+                            </center>
+                        </h2>
+                    </div>
+                    <div id="collapseOne" class="collapse show" aria-labelledby="headingOne"
+                         data-parent="#accordionExample">
+                        <div class="card-body">
+                            <h3 class="page-header" style="text-align: left;line-height: 25px;font-size: 17px">基本</h3>
+                            <div style="margin-left: 25px">
+                                <div class="form-group">
+                                    <label style="display:inline">分词模式: </label>
+                                    <select id="split_mode_select">
+                                        <option value="words">词语分词模式</option>
+                                        <option value="chars">字符分词模式</option>
+                                    </select>
+                                    <br/>
+                                    <label style="display: inline" class="col-sm-2 control-label">数量: &nbsp</label>
+                                    <div class="col-sm-10" style="display: inline">
+                                        <input type="text" class="form-control" id="words_max_value" placeholder="75" maxlength="3">
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="nav nav-list"><li class="divider"></li></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+        <footer class="footer">
+            <div class="container">
+                <span style="vertical-align: inherit;">
+                    Copyright © 2020 <span style="color: #0088cc;">Guan Yongjie 官咏颉</span>. All rights reserved. 版权所有.
+                </span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
